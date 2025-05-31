@@ -46,9 +46,23 @@
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { width: 100vw; height: 100vh; display: block; }
+        #loading { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            font-family: Arial, sans-serif; 
+            color: white; 
+            font-size: 24px; 
+            background: rgba(0, 0, 0, 0.7); 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
+    <div id="loading">Loading model...</div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -82,8 +96,13 @@
 
         // Load GLB model
         const loader = new THREE.GLTFLoader();
+        const glbPath = 'office_-_assets.glb'; // Relative path for GitHub Pages
+        // Alternative: Use GitHub Release URL, e.g.:
+        // const glbPath = 'https://github.com/Madhav5074/retro_pc_website/releases/download/v1.0.0/office_-_assets.glb';
+        const fullUrl = window.location.origin + '/' + glbPath;
+        console.log('Attempting to load GLB from:', fullUrl);
         loader.load(
-            'model.glb', // Path to your GLB file in the repository
+            glbPath,
             (gltf) => {
                 const model = gltf.scene;
                 scene.add(model);
@@ -94,12 +113,18 @@
                 const size = box.getSize(new THREE.Vector3()).length();
                 const maxDim = Math.max(size, 1);
                 model.scale.setScalar(2 / maxDim);
+                // Update loading indicator
+                document.getElementById('loading').style.display = 'none';
+                console.log('GLB model loaded successfully');
             },
             (xhr) => {
-                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                console.log(`Loading progress: ${(xhr.loaded / xhr.total * 100).toFixed(2)}%`);
+                document.getElementById('loading').innerText = `Loading: ${(xhr.loaded / xhr.total * 100).toFixed(0)}%`;
             },
             (error) => {
-                console.error('Error loading GLB model:', error);
+                console.error('Detailed error loading GLB model:', error);
+                document.getElementById('loading').innerText = `Error: Failed to load model. ${error.message || 'Check console for details.'}`;
+                document.getElementById('loading').style.background = 'rgba(255, 0, 0, 0.7)';
             }
         );
 
